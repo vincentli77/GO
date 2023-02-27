@@ -27,6 +27,12 @@ type Reservation struct {
 	UpdatedAt       string
 }
 
+type Availability struct {
+	Day       string `json:"day"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+}
+
 func AddReservation(db *sql.DB, data ReservationData) error {
 	tx, err := db.Begin()
 	if err != nil {
@@ -120,4 +126,46 @@ func getWeekRange(r *http.Request) (startDate string, endDate string) {
 	endDate = r.URL.Query().Get("end_date")
 
 	return startDate, endDate
+}
+
+func CheckReservation(db *sql.DB, reservationDate string, startTime string, endTime string) int {
+	query := "SELECT COUNT(*) FROM reservations WHERE reservation_date = ? AND start_time >= ? AND end_time <= ?"
+	var count int
+	err := db.QueryRow(query, reservationDate, startTime, endTime).Scan(&count)
+	fmt.Println(count)
+	fmt.Println(err)
+
+	return count
+}
+
+func AddAvailability(db *sql.DB, data Availability) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	var data2 = []map[string]string{
+		{"day": "monday", "start_time": "09:00", "end_time": "09:30"},
+		{"day": "monday", "start_time": "09:30", "end_time": "10:00"},
+		{"day": "monday", "start_time": "10:00", "end_time": "10:30"},
+	}
+
+	stmt, err := tx.Prepare("INSERT INTO disponibilite (day, start_time, end_time) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	for _, d := range data2 {
+		_, err = stmt.Exec(d["day"], d["start_time"], d["end_time"])
+		if err != nil {
+			return err
+		}
+	}
+	// insert reservation
+	// _, err = tx.Exec("INSERT INTO disponibilite (day, start_time, end_time) VALUES (?, ?, ?)", data.Day, data.StartTime, data.EndTime)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }

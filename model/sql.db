@@ -20,3 +20,10 @@ CREATE TABLE reservations (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+
+CREATE TABLE disponibilite (
+  day VARCHAR(10),
+  start_time TIME,
+  end_time TIME
+);
