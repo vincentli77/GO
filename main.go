@@ -43,7 +43,7 @@ func main() {
 
 func reservationHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
+		setCorsHeaders(w)
 		if r.Method == http.MethodPost {
 			var data model.ReservationData
 			err := json.NewDecoder(r.Body).Decode(&data)
@@ -74,7 +74,7 @@ func reservationHandler(db *sql.DB) http.HandlerFunc {
 }
 
 func handleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
+	setCorsHeaders(w)
 
 	switch r.Method {
 	case "GET":
@@ -86,7 +86,7 @@ func handleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
+	setCorsHeaders(w)
 
 	switch r.Method {
 	case "GET":
@@ -112,7 +112,7 @@ func handleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 func availabilityHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
+		setCorsHeaders(w)
 		if r.Method == http.MethodPost {
 			var data []map[string]string
 			err := json.NewDecoder(r.Body).Decode(&data)
@@ -133,9 +133,8 @@ func availabilityHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+func setCorsHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 }
