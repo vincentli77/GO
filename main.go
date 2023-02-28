@@ -30,7 +30,9 @@ func main() {
 		handleGetReservations(db, w, r)
 	})
 	http.HandleFunc("/addAvailability", availabilityHandler(db))
-
+	http.HandleFunc("/get_availability", func(w http.ResponseWriter, r *http.Request) {
+		handleGetAvailability(db, w, r)
+	})
 	fmt.Println("Serveur web démarré sur le port 8080...")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
@@ -80,10 +82,33 @@ func handleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		data, err := model.GetAvailability(db)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error getting availability: %s", err.Error())
+			return
+		}
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error encoding availability: %s", err.Error())
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "Method %s not allowed", r.Method)
+	}
+}
+
 func availabilityHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			var data model.Availability
+			var data []map[string]string
 			err := json.NewDecoder(r.Body).Decode(&data)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)

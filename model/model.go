@@ -138,30 +138,60 @@ func CheckReservation(db *sql.DB, reservationDate string, startTime string, endT
 	return count
 }
 
-func AddAvailability(db *sql.DB, data Availability) error {
+func GetAvailability(db *sql.DB) ([]map[string]string, error) {
+	rows, err := db.Query("SELECT day, start_time, end_time FROM disponibilite")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	data := make([]map[string]string, 0)
+	for rows.Next() {
+		var day string
+		var start_time string
+		var end_time string
+		err := rows.Scan(&day, &start_time, &end_time)
+		if err != nil {
+			return nil, err
+		}
+
+		d := make(map[string]string)
+		d["day"] = day
+		d["start_time"] = start_time
+		d["end_time"] = end_time
+
+		data = append(data, d)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func AddAvailability(db *sql.DB, data []map[string]string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	var data2 = []map[string]string{
-		{"day": "monday", "start_time": "09:00", "end_time": "09:30"},
-		{"day": "monday", "start_time": "09:30", "end_time": "10:00"},
-		{"day": "monday", "start_time": "10:00", "end_time": "10:30"},
+
+	_, err = tx.Exec("DELETE FROM disponibilite")
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	stmt, err := tx.Prepare("INSERT INTO disponibilite (day, start_time, end_time) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
-	for _, d := range data2 {
+	for _, d := range data {
 		_, err = stmt.Exec(d["day"], d["start_time"], d["end_time"])
 		if err != nil {
 			return err
 		}
 	}
-	// insert reservation
-	// _, err = tx.Exec("INSERT INTO disponibilite (day, start_time, end_time) VALUES (?, ?, ?)", data.Day, data.StartTime, data.EndTime)
-
 	if err != nil {
 		tx.Rollback()
 		return err
