@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -40,8 +41,13 @@ func main() {
 	http.HandleFunc("/get_user", func(w http.ResponseWriter, r *http.Request) {
 		controller.GetUser(db, w, r)
 	})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
 	fmt.Println("Serveur web démarré sur le port 8080...")
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		panic(err)
 	}
