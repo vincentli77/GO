@@ -37,6 +37,9 @@ func main() {
 	http.HandleFunc("/get_availability", func(w http.ResponseWriter, r *http.Request) {
 		controller.HandleGetAvailability(db, w, r)
 	})
+	http.HandleFunc("/get_user", func(w http.ResponseWriter, r *http.Request) {
+		controller.GetUser(db, w, r)
+	})
 	fmt.Println("Serveur web démarré sur le port 8080...")
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {

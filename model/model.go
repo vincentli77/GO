@@ -1,5 +1,12 @@
 package model
 
+type User struct {
+	Id         int    `json:"id"`
+	First_name string `json:"first_name"`
+	Last_name  string `json:"last_name"`
+	Created_at string `json:"created_at"`
+	Updated_at string `json:"updated_at"`
+}
 type ReservationData struct {
 	First_name       string `json:"first_name"`
 	Last_name        string `json:"last_name"`

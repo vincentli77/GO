@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func ReservationHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// setCorsHeaders(w)
+		setCorsHeaders(w)
 		if r.Method == http.MethodPost {
 			var data model.ReservationData
 			err := json.NewDecoder(r.Body).Decode(&data)
@@ -102,8 +103,8 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 
 func setCorsHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-	// w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 }
 
 func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
@@ -112,6 +113,37 @@ func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Reque
 	switch r.Method {
 	case "GET":
 		services.AdminGetReservationsForWeek(db, w, r)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "Method %s not allowed", r.Method)
+	}
+}
+
+func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	setCorsHeaders(w)
+
+	switch r.Method {
+	case "GET":
+		userID := r.URL.Query().Get("id")
+		if userID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Reservation ID missing")
+			return
+		}
+		id, err := strconv.Atoi(userID)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Invalid reservation ID")
+			return
+		}
+		users, err := services.GetUser(db, id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error retrieving user: %v", err)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(users)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Method %s not allowed", r.Method)

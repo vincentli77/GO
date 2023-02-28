@@ -231,3 +231,13 @@ func AdminGetReservationsForWeek(db *sql.DB, w http.ResponseWriter, r *http.Requ
 
 	json.NewEncoder(w).Encode(reservations)
 }
+
+func GetUser(db *sql.DB, userID int) (*model.User, error) {
+	query := "SELECT id, first_name,last_name,created_at,updated_at FROM users WHERE id = ?"
+	var user model.User
+	err := db.QueryRow(query, userID).Scan(&user.Id, &user.First_name, &user.Last_name, &user.Created_at, &user.Updated_at)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
