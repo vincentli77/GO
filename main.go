@@ -1,9 +1,8 @@
 package main
 
 import (
-	"Desktop/Go/model"
+	"Desktop/Go/controller"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -25,13 +24,13 @@ func main() {
 		panic(err)
 	}
 
-	http.HandleFunc("/reservations", reservationHandler(db))
+	http.HandleFunc("/reservations", controller.ReservationHandler(db))
 	http.HandleFunc("/get_reservations", func(w http.ResponseWriter, r *http.Request) {
-		handleGetReservations(db, w, r)
+		controller.HandleGetReservations(db, w, r)
 	})
-	http.HandleFunc("/addAvailability", availabilityHandler(db))
+	http.HandleFunc("/add_availability", controller.AvailabilityHandler(db))
 	http.HandleFunc("/get_availability", func(w http.ResponseWriter, r *http.Request) {
-		handleGetAvailability(db, w, r)
+		controller.HandleGetAvailability(db, w, r)
 	})
 	fmt.Println("Serveur web démarré sur le port 8080...")
 	err = http.ListenAndServe(":8080", nil)
@@ -39,102 +38,4 @@ func main() {
 		panic(err)
 	}
 
-}
-
-func reservationHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCorsHeaders(w)
-		if r.Method == http.MethodPost {
-			var data model.ReservationData
-			err := json.NewDecoder(r.Body).Decode(&data)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Error decoding JSON data: " + err.Error()))
-				return
-			}
-
-			// Vérifie si une réservation existe déjà pour la même date et plage horaire
-			var count int
-			count = model.CheckReservation(db, data.ReservationDate, data.StartTime, data.EndTime)
-			if count > 0 {
-				http.Error(w, "Reservation already exists for this time range", http.StatusConflict)
-			} else {
-				err = model.AddReservation(db, data)
-				if err != nil {
-					http.Error(w, "Error adding reservation", http.StatusConflict)
-
-				}
-			}
-			if err != nil {
-				http.Error(w, "Error adding reservation", http.StatusConflict)
-			}
-
-		}
-	}
-}
-
-func handleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
-
-	switch r.Method {
-	case "GET":
-		model.GetReservationsForWeek(db, w, r)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Method %s not allowed", r.Method)
-	}
-}
-
-func handleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
-
-	switch r.Method {
-	case "GET":
-		data, err := model.GetAvailability(db)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error getting availability: %s", err.Error())
-			return
-		}
-		jsonData, err := json.Marshal(data)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error encoding availability: %s", err.Error())
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonData)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Method %s not allowed", r.Method)
-	}
-}
-
-func availabilityHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCorsHeaders(w)
-		if r.Method == http.MethodPost {
-			var data []map[string]string
-			err := json.NewDecoder(r.Body).Decode(&data)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Error decoding JSON data: " + err.Error()))
-				return
-			}
-			err = model.AddAvailability(db, data)
-			fmt.Println(data)
-
-			if err != nil {
-				http.Error(w, "Error adding availaibility", http.StatusConflict)
-
-			}
-
-		}
-	}
-}
-
-func setCorsHeaders(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 }
