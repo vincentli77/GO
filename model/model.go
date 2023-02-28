@@ -8,13 +8,21 @@ type ReservationData struct {
 	End_time         string `json:"end_time"`
 }
 
-type Reservation struct {
+type ReservationAdmin struct {
 	Id               int    `json:"id"`
 	User_id          int    `json:"user_id"`
 	Reservation_date string `json:"reservation_date"`
 	Start_time       string `json:"start_time"`
 	End_time         string `json:"end_time"`
-	Status           string `json:"status"`
+	Created_at       string `json:"created_at"`
+	Updated_at       string `json:"updated_at"`
+}
+
+type Reservation struct {
+	Id               int    `json:"id"`
+	Reservation_date string `json:"reservation_date"`
+	Start_time       string `json:"start_time"`
+	End_time         string `json:"end_time"`
 	Created_at       string `json:"created_at"`
 	Updated_at       string `json:"updated_at"`
 }

@@ -13,7 +13,7 @@ import (
 
 func ReservationHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		setCorsHeaders(w)
+		// setCorsHeaders(w)
 		if r.Method == http.MethodPost {
 			var data model.ReservationData
 			err := json.NewDecoder(r.Body).Decode(&data)
@@ -31,12 +31,12 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 			} else {
 				err = services.AddReservation(db, data)
 				if err != nil {
-					http.Error(w, "Error adding reservation", http.StatusConflict)
+					http.Error(w, "Error adding reservation1", http.StatusConflict)
 
 				}
 			}
 			if err != nil {
-				http.Error(w, "Error adding reservation", http.StatusConflict)
+				http.Error(w, "Error adding reservation2", http.StatusConflict)
 			}
 
 		}
@@ -87,8 +87,7 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 			var data []map[string]string
 			err := json.NewDecoder(r.Body).Decode(&data)
 			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Error decoding JSON data: " + err.Error()))
+				http.Error(w, "Error decoding JSON data: "+err.Error(), http.StatusBadRequest)
 				return
 			}
 			err = services.AddAvailability(db, data)
@@ -103,6 +102,18 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 
 func setCorsHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+	// w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	// w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+}
+
+func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	setCorsHeaders(w)
+
+	switch r.Method {
+	case "GET":
+		services.AdminGetReservationsForWeek(db, w, r)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "Method %s not allowed", r.Method)
+	}
 }
