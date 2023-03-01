@@ -16,7 +16,7 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Définir les en-têtes CORS pour permettre les requêtes cross-domain
-		setCorsHeaders(w)
+		setCorsHeaders(w, r)
 
 		// Vérifier si la requête est de type POST
 		if r.Method == http.MethodPost {
@@ -56,7 +56,7 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 }
 
 func HandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
+	setCorsHeaders(w, r)
 
 	switch r.Method {
 	case "GET":
@@ -68,7 +68,7 @@ func HandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
+	setCorsHeaders(w, r)
 
 	switch r.Method {
 	case "GET":
@@ -94,7 +94,7 @@ func HandleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		setCorsHeaders(w)
+		setCorsHeaders(w, r)
 		if r.Method == http.MethodPost {
 			var data []map[string]string
 			err := json.NewDecoder(r.Body).Decode(&data)
@@ -113,7 +113,7 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 }
 
 func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
+	setCorsHeaders(w, r)
 
 	switch r.Method {
 	case "GET":
@@ -125,7 +125,7 @@ func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Reque
 }
 
 func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
+	setCorsHeaders(w, r)
 
 	switch r.Method {
 	case "GET":
@@ -156,7 +156,7 @@ func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteReservation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w)
+	setCorsHeaders(w, r)
 
 	switch r.Method {
 	case "DELETE":
@@ -186,8 +186,14 @@ func DeleteReservation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func setCorsHeaders(w http.ResponseWriter) {
+func setCorsHeaders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+
+	// Handle preflight requests
+    if r.Method == "OPTIONS" {
+        w.WriteHeader(http.StatusOK)
+        return
+    }
 }
