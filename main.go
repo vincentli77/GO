@@ -44,7 +44,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8000"
+		port = "8080"
 	}
 	fmt.Println("Serveur web démarré sur le port 8080...")
 	err = http.ListenAndServe(":"+port, nil)
