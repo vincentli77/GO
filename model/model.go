@@ -242,8 +242,8 @@ func GetUser(db *sql.DB, userID int) (*entities.User, error) {
 	return &user, nil
 }
 
-func DeleteUser(db *sql.DB, userID int) error {
-	query := "DELETE FROM users WHERE id = ?"
+func DeleteReservation(db *sql.DB, userID int) error {
+	query := "DELETE FROM reservations WHERE reservation_id = ?"
 	_, err := db.Exec(query, userID)
 	if err != nil {
 		return err

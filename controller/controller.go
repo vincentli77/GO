@@ -14,32 +14,43 @@ import (
 
 func ReservationHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		// Définir les en-têtes CORS pour permettre les requêtes cross-domain
 		setCorsHeaders(w)
+
+		// Vérifier si la requête est de type POST
 		if r.Method == http.MethodPost {
+
+			// Déclarer une variable pour stocker les données de réservation
 			var data entities.ReservationData
+
+			// Décoder le corps de la requête JSON dans la variable de réservation
 			err := json.NewDecoder(r.Body).Decode(&data)
 			if err != nil {
+				// Renvoyer une erreur HTTP si la lecture des données de la requête JSON a échoué
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte("Error decoding JSON data: " + err.Error()))
 				return
 			}
 
-			// Vérifie si une réservation existe déjà pour la même date et plage horaire
+			// Vérifier si une réservation existe déjà pour la même date et plage horaire
 			var count int
 			count = model.CheckReservation(db, data.Reservation_date, data.Start_time, data.End_time)
 			if count > 0 {
+				// Renvoyer une erreur HTTP si une réservation existe déjà pour cette plage horaire
 				http.Error(w, "Reservation already exists for this time range", http.StatusConflict)
 			} else {
+				// Ajouter la nouvelle réservation à la base de données
 				err = model.AddReservation(db, data)
 				if err != nil {
-					http.Error(w, "Error adding reservation1", http.StatusConflict)
-
+					// Renvoyer une erreur HTTP si l'ajout de la réservation a échoué
+					http.Error(w, "Error adding reservation", http.StatusConflict)
 				}
 			}
 			if err != nil {
-				http.Error(w, "Error adding reservation2", http.StatusConflict)
+				// Renvoyer une erreur HTTP si l'ajout de la réservation a échoué
+				http.Error(w, "Error adding reservation", http.StatusConflict)
 			}
-
 		}
 	}
 }
@@ -144,12 +155,12 @@ func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func DeleteReservation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(w)
 
 	switch r.Method {
 	case "DELETE":
-		userID := r.URL.Query().Get("id")
+		userID := r.URL.Query().Get("reservation_id")
 		if userID == "" {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprint(w, "Reservation ID missing")
@@ -161,7 +172,7 @@ func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Invalid reservation ID")
 			return
 		}
-		err = model.DeleteUser(db, id)
+		err = model.DeleteReservation(db, id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error deleting user: %v", err)
