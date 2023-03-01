@@ -13,8 +13,8 @@ import (
 func main() {
 
 	// Établissez la connexion à la base de données.
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/reservation")
-	// db, err := sql.Open("mysql", "b50a7750fdd7c4:5bedff1e@tcp(eu-cdbr-west-03.cleardb.net:3306)/heroku_0429c505d3dfa57")
+	// db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/reservation")
+	db, err := sql.Open("mysql", "b50a7750fdd7c4:5bedff1e@tcp(eu-cdbr-west-03.cleardb.net:3306)/heroku_0429c505d3dfa57")
 
 	if err != nil {
 		panic(err)
