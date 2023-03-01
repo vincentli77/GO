@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"Desktop/Go/entities"
 	"Desktop/Go/model"
-	"Desktop/Go/services"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -16,7 +16,7 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		setCorsHeaders(w)
 		if r.Method == http.MethodPost {
-			var data model.ReservationData
+			var data entities.ReservationData
 			err := json.NewDecoder(r.Body).Decode(&data)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -26,11 +26,11 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 
 			// Vérifie si une réservation existe déjà pour la même date et plage horaire
 			var count int
-			count = services.CheckReservation(db, data.Reservation_date, data.Start_time, data.End_time)
+			count = model.CheckReservation(db, data.Reservation_date, data.Start_time, data.End_time)
 			if count > 0 {
 				http.Error(w, "Reservation already exists for this time range", http.StatusConflict)
 			} else {
-				err = services.AddReservation(db, data)
+				err = model.AddReservation(db, data)
 				if err != nil {
 					http.Error(w, "Error adding reservation1", http.StatusConflict)
 
@@ -49,7 +49,7 @@ func HandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		services.GetReservationsForWeek(db, w, r)
+		model.GetReservationsForWeek(db, w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Method %s not allowed", r.Method)
@@ -61,7 +61,7 @@ func HandleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		data, err := services.GetAvailability(db)
+		data, err := model.GetAvailability(db)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error getting availability: %s", err.Error())
@@ -91,7 +91,7 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Error decoding JSON data: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			err = services.AddAvailability(db, data)
+			err = model.AddAvailability(db, data)
 			if err != nil {
 				http.Error(w, "Error adding availaibility", http.StatusConflict)
 
@@ -106,7 +106,7 @@ func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Reque
 
 	switch r.Method {
 	case "GET":
-		services.AdminGetReservationsForWeek(db, w, r)
+		model.AdminGetReservationsForWeek(db, w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Method %s not allowed", r.Method)
@@ -130,7 +130,7 @@ func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Invalid reservation ID")
 			return
 		}
-		users, err := services.GetUser(db, id)
+		users, err := model.GetUser(db, id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error retrieving user: %v", err)
@@ -161,7 +161,7 @@ func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Invalid reservation ID")
 			return
 		}
-		err = services.DeleteUser(db, id)
+		err = model.DeleteUser(db, id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error deleting user: %v", err)
