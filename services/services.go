@@ -241,3 +241,12 @@ func GetUser(db *sql.DB, userID int) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+func DeleteUser(db *sql.DB, userID int) error {
+	query := "DELETE FROM users WHERE id = ?"
+	_, err := db.Exec(query, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

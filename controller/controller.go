@@ -101,12 +101,6 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func setCorsHeaders(w http.ResponseWriter) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-}
-
 func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(w)
 
@@ -148,4 +142,41 @@ func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Method %s not allowed", r.Method)
 	}
+}
+
+func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	setCorsHeaders(w)
+
+	switch r.Method {
+	case "DELETE":
+		userID := r.URL.Query().Get("id")
+		if userID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Reservation ID missing")
+			return
+		}
+		id, err := strconv.Atoi(userID)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Invalid reservation ID")
+			return
+		}
+		err = services.DeleteUser(db, id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Error deleting user: %v", err)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "User deleted successfully")
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "Method %s not allowed", r.Method)
+	}
+}
+
+func setCorsHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 }
