@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"Desktop/Go/entities"
 	"Desktop/Go/model"
+	"Desktop/Go/schemas"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -22,7 +22,7 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 		if r.Method == http.MethodPost {
 
 			// Déclarer une variable pour stocker les données de réservation
-			var data entities.ReservationData
+			var data schemas.ReservationData
 
 			// Décoder le corps de la requête JSON dans la variable de réservation
 			err := json.NewDecoder(r.Body).Decode(&data)
@@ -71,97 +71,12 @@ func GetReservationsHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func GetAvailabilityHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	// Autorise les requêtes Cross-Origin Resource Sharing (CORS)
-	setCorsHeaders(w, r)
-
-	// Détermine la méthode HTTP utilisée
-	switch r.Method {
-	case "GET":
-		// Appelle la fonction GetAvailability pour récupérer les données de disponibilité
-		data, err := model.GetAvailability(db)
-		if err != nil {
-			// Si une erreur se produit, renvoie une réponse d'erreur avec le code HTTP 500 (Internal Server Error)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Erreur lors de la récupération de la disponibilité : %s", err.Error())
-			return
-		}
-		// Encode les données en JSON
-		jsonData, err := json.Marshal(data)
-		if err != nil {
-			// Si une erreur se produit lors de l'encodage en JSON, renvoie une réponse d'erreur avec le code HTTP 500 (Internal Server Error)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Erreur lors de l'encodage en JSON de la disponibilité : %s", err.Error())
-			return
-		}
-		// Configure le type de contenu de la réponse
-		w.Header().Set("Content-Type", "application/json")
-		// Écrit la réponse JSON
-		w.Write(jsonData)
-	default:
-		// Si la méthode n'est pas GET, renvoie une réponse d'erreur avec le code HTTP 405 (Method Not Allowed)
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Méthode %s non autorisée", r.Method)
-	}
-}
-
-func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		setCorsHeaders(w, r)
-		if r.Method == http.MethodPost {
-			var data []map[string]string
-			err := json.NewDecoder(r.Body).Decode(&data)
-			if err != nil {
-				http.Error(w, "Error decoding JSON data: "+err.Error(), http.StatusBadRequest)
-				return
-			}
-			err = model.AddAvailability(db, data)
-			if err != nil {
-				http.Error(w, "Error adding availaibility", http.StatusConflict)
-
-			}
-
-		}
-	}
-}
-
 func AdminGetReservationsHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(w, r)
 
 	switch r.Method {
 	case "GET":
 		model.AdminGetReservationsForWeek(db, w, r)
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Method %s not allowed", r.Method)
-	}
-}
-
-func GetUserHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(w, r)
-
-	switch r.Method {
-	case "GET":
-		userID := r.URL.Query().Get("id")
-		if userID == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "Reservation ID missing")
-			return
-		}
-		id, err := strconv.Atoi(userID)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, "Invalid reservation ID")
-			return
-		}
-		users, err := model.GetUser(db, id)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error retrieving user: %v", err)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(users)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "Method %s not allowed", r.Method)

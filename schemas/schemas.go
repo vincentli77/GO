@@ -1,4 +1,4 @@
-package entities
+package schemas
 
 type User struct {
 	Id         int    `json:"id"`
