@@ -55,40 +55,53 @@ func ReservationHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func HandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func GetReservationsHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Autorise les requêtes Cross-Origin Resource Sharing (CORS)
 	setCorsHeaders(w, r)
 
+	// Détermine la méthode HTTP utilisée
 	switch r.Method {
 	case "GET":
+		// Si la méthode est GET, appelle la fonction GetReservationsForWeek pour récupérer les réservations
 		model.GetReservationsForWeek(db, w, r)
 	default:
+		// Si la méthode n'est pas GET, renvoie une réponse d'erreur avec le code HTTP 405 (Method Not Allowed)
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Method %s not allowed", r.Method)
+		fmt.Fprintf(w, "Méthode %s non autorisée", r.Method)
 	}
 }
 
-func HandleGetAvailability(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func GetAvailabilityHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	// Autorise les requêtes Cross-Origin Resource Sharing (CORS)
 	setCorsHeaders(w, r)
 
+	// Détermine la méthode HTTP utilisée
 	switch r.Method {
 	case "GET":
+		// Appelle la fonction GetAvailability pour récupérer les données de disponibilité
 		data, err := model.GetAvailability(db)
 		if err != nil {
+			// Si une erreur se produit, renvoie une réponse d'erreur avec le code HTTP 500 (Internal Server Error)
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error getting availability: %s", err.Error())
+			fmt.Fprintf(w, "Erreur lors de la récupération de la disponibilité : %s", err.Error())
 			return
 		}
+		// Encode les données en JSON
 		jsonData, err := json.Marshal(data)
 		if err != nil {
+			// Si une erreur se produit lors de l'encodage en JSON, renvoie une réponse d'erreur avec le code HTTP 500 (Internal Server Error)
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "Error encoding availability: %s", err.Error())
+			fmt.Fprintf(w, "Erreur lors de l'encodage en JSON de la disponibilité : %s", err.Error())
 			return
 		}
+		// Configure le type de contenu de la réponse
 		w.Header().Set("Content-Type", "application/json")
+		// Écrit la réponse JSON
 		w.Write(jsonData)
 	default:
+		// Si la méthode n'est pas GET, renvoie une réponse d'erreur avec le code HTTP 405 (Method Not Allowed)
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "Method %s not allowed", r.Method)
+		fmt.Fprintf(w, "Méthode %s non autorisée", r.Method)
 	}
 }
 
@@ -112,7 +125,7 @@ func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func AdminGetReservationsHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(w, r)
 
 	switch r.Method {
@@ -124,7 +137,7 @@ func AdminHandleGetReservations(db *sql.DB, w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func GetUserHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(w, r)
 
 	switch r.Method {
@@ -155,7 +168,7 @@ func GetUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DeleteReservation(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+func DeleteReservationHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(w, r)
 
 	switch r.Method {
@@ -192,8 +205,8 @@ func setCorsHeaders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 
 	// Handle preflight requests
-    if r.Method == "OPTIONS" {
-        w.WriteHeader(http.StatusOK)
-        return
-    }
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 }
