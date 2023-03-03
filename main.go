@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Handler pour la création d'une nouvelle réservation.
-	http.HandleFunc("/reservations", controller.ReservationHandler(db))
+	http.HandleFunc("/reservations", controller.AddReservationHandler(db))
 	// Handler pour la récupération de toutes les réservations.
 	http.HandleFunc("/get_reservations", func(w http.ResponseWriter, r *http.Request) {
 		controller.GetReservationsHandler(db, w, r)

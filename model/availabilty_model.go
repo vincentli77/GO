@@ -5,17 +5,14 @@ import (
 )
 
 func GetAvailability(db *sql.DB) ([]map[string]string, error) {
-	// Récupère toutes les disponibilités enregistrées dans la table 'disponibilite'
 	rows, err := db.Query("SELECT day, start_time, end_time FROM disponibilite")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// Crée une slice de maps pour stocker les données récupérées
 	data := make([]map[string]string, 0)
 
-	// Parcourt chaque ligne renvoyée par la requête SQL
 	for rows.Next() {
 		var day string
 		var start_time string
@@ -25,22 +22,18 @@ func GetAvailability(db *sql.DB) ([]map[string]string, error) {
 			return nil, err
 		}
 
-		// Crée une map pour stocker les données de chaque ligne
-		d := make(map[string]string)
-		d["day"] = day
-		d["start_time"] = start_time
-		d["end_time"] = end_time
+		availibility := make(map[string]string)
+		availibility["day"] = day
+		availibility["start_time"] = start_time
+		availibility["end_time"] = end_time
 
-		// Ajoute la map créée à la slice de données
-		data = append(data, d)
+		data = append(data, availibility)
 	}
-	// Vérifie s'il y a eu une erreur lors du parcours des lignes renvoyées
 	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
 
-	// Retourne les données récupérées sous forme de slice de maps
 	return data, nil
 }
 
@@ -60,8 +53,8 @@ func AddAvailability(db *sql.DB, data []map[string]string) error {
 	if err != nil {
 		return err
 	}
-	for _, d := range data {
-		_, err = stmt.Exec(d["day"], d["start_time"], d["end_time"])
+	for _, data := range data {
+		_, err = stmt.Exec(data["day"], data["start_time"], data["end_time"])
 		if err != nil {
 			return err
 		}
