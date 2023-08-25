@@ -28,31 +28,40 @@ func main() {
 		panic(err)
 	}
 
+	// Handler pour la création d'une nouvelle réservation.
 	http.HandleFunc("/reservations", controller.AddReservationHandler(db))
+	// Handler pour la récupération de toutes les réservations.
 	http.HandleFunc("/get_reservations", func(w http.ResponseWriter, r *http.Request) {
 		controller.GetReservationsHandler(db, w, r)
 	})
 
+	// Handler pour la récupération de toutes les réservations pour l'administrateur.
 	http.HandleFunc("/admin_get_reservations", func(w http.ResponseWriter, r *http.Request) {
 		controller.AdminGetReservationsHandler(db, w, r)
 	})
+	// Handler pour la suppression de reservation.
 	http.HandleFunc("/delete_reservation", func(w http.ResponseWriter, r *http.Request) {
 		controller.DeleteReservationHandler(db, w, r)
 	})
 
-	http.HandleFunc("/add_availability", controller.AddAvailabilityHandler(db))
+	// Handler pour l'ajout de la disponibilité.
+	http.HandleFunc("/add_availability", controller.AvailabilityHandler(db))
+	// Handler pour la récupération de toutes les disponibilités.
 	http.HandleFunc("/get_availability", func(w http.ResponseWriter, r *http.Request) {
 		controller.GetAvailabilityHandler(db, w, r)
 	})
+	// Handler pour la récupération des informations de l'utilisateur.
 	http.HandleFunc("/get_user", func(w http.ResponseWriter, r *http.Request) {
 		controller.GetUserHandler(db, w, r)
 	})
 
+	// Récupération du numéro de port à utiliser pour le serveur web.
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
+	// Démarrage du serveur web sur le port spécifié.
 	fmt.Println("Serveur web démarré sur le port " + port + "...")
 	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
