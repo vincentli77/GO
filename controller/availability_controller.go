@@ -35,7 +35,7 @@ func GetAvailabilityHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func AvailabilityHandler(db *sql.DB) http.HandlerFunc {
+func AddAvailabilityHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		setCorsHeaders(w, r)
 		if r.Method == http.MethodPost {
